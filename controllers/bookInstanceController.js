@@ -14,7 +14,6 @@ exports.bookinstance_list = (req, res, next) => {
             if (err) { return next(err); }
             // Successful, so render
 
-            console.log(list_bookinstances)
             res.render('bookinstance/bookinstance_list', { title: 'Book Instance List', bookinstance_list: list_bookinstances });
         });
 };
@@ -51,12 +50,42 @@ exports.bookinstance_create_post = (req, res) => {
 
 // Display BookInstance delete form on GET.
 exports.bookinstance_delete_get = (req, res) => {
-    res.send('NOT IMPLEMENTED: BookInstance delete GET');
+    BookInstance.findById(req.params.id)
+        .populate('book')
+        .exec((err, data) => {
+            if (err || data == null) {
+                const err = new Error('Book instance not found');
+                err.status = 404;
+                return next(404);
+            }
+
+            res.render('bookinstance/bookinstance_delete', { title: 'Delete Book Instance', bookinstance: data });
+        });
 };
 
 // Handle BookInstance delete on POST.
-exports.bookinstance_delete_post = (req, res) => {
-    res.send('NOT IMPLEMENTED: BookInstance delete POST');
+exports.bookinstance_delete_post = async (req, res, next) => {
+    try {
+        const result = await BookInstance.findByIdAndDelete(req.params.id);
+        res.redirect('/catalog/bookinstances');
+    } catch (e) {
+        return next(e);
+    }
+    // BookInstance.findById(req.params.id)
+    //     .populate('book')
+    //     .exec((err, data) => {
+    //         if (err || data == null) {
+    //             const err = new Error('Book instance not found');
+    //             err.status = 404;
+    //             return next(404);
+    //         }
+
+    //         BookInstance.findByIdAndDelete(req.params.id, (err, data) => {
+    //             if (err) { return next(err); }
+
+    //             res.redirect('/catalog/bookinstances');
+    //         })
+    //     });
 };
 
 // Display BookInstance update form on GET.

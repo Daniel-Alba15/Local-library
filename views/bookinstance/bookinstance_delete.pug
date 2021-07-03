@@ -1,0 +1,14 @@
+extends ../base
+
+block content
+  h1 #{title}: #{bookinstance.book.title}
+  p #{bookinstance.imprint}
+  p #{bookinstance.isbn}
+
+  p(style='margin-top:20px') Do you really want to delete this Author?
+
+  form(method='POST' action='')
+    div.form-group
+    input(id='bookinstanceid' class='form-control' type='hidden' name='bookinstanceid' required='true', value=bookinstance._id )
+
+    button.btn.btn-primary(type='submit') Delete

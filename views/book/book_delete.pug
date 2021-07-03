@@ -1,0 +1,38 @@
+extends ../base
+
+block content
+  h1 #{title}: #{book.title}
+  p Author: #{book.author.name}
+  p Genres:
+  lu
+    each genre in book.genre
+      li #{genre.name}
+
+  if book_instance.length
+
+    p(style='margin-top:20px;') #[strong Delete the following books instance before attempting to delete this book.]
+
+    div(style='margin-left:20px;margin-top:20px')
+
+      h4 Books instance
+
+      dl
+      each book_ins in book_instance
+        dt
+          a(href=book.url) #{book_ins._id}
+        if book_ins.status == 'Available'
+          dd(class='text-success') #{book_ins.status}
+        else if book_ins.status == 'Maintenance'
+          dd(class='text-danger') #{book_ins.status}
+        else
+          dd(class='text-warning') #{book_ins.status}
+        hr
+
+  else
+    p(style='margin-top:20px;') Do you really want to delete this book?
+
+    form(method='POST' action='')
+      div(class='form-group')
+        input(id='bookid' class='form-control' type='hidden' name='bookid' required='true', value=book._id)
+
+      button(class='btn btn-primary' type='submit') Delete

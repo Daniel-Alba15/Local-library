@@ -106,7 +106,11 @@ exports.author_delete_post = (req, res, next) => {
             Book.find({ 'author': req.body.authorid }).exec(callback)
         },
     }, (err, results) => {
-        if (err) { return next(err); }
+        if (err || results.author == null) {
+            const err = new Error('Author not found');
+            err.status = 404;
+            return next(err);
+        }
         // Success
         if (results.authors_books.length > 0) {
             // Author has books. Render in same way as for GET route.
@@ -115,7 +119,7 @@ exports.author_delete_post = (req, res, next) => {
         }
 
         // Author has no books. Delete object and redirect to the list of authors.
-        Author.findByIdAndRemove(req.body.authorid, (err) => {
+        Author.findByIdAndDelete(req.body.authorid, (err) => {
             if (err) { return next(err); }
             // Success - go to author list
             res.redirect('/catalog/authors')

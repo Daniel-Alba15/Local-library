@@ -158,13 +158,50 @@ exports.book_create_post = [
 ]
 
 // Display book delete form on GET.
-exports.book_delete_get = (req, res) => {
-    res.send('NOT IMPLEMENTED: Book delete GET');
+exports.book_delete_get = (req, res, next) => {
+    async.parallel({
+        book: (callback) => {
+            Book.findById(req.params.id).populate('author').populate('genre').exec(callback);
+        },
+        bookInstance: (callback) => {
+            BookInstance.find({ book: req.params.id }, callback)
+        }
+    }, (err, results) => {
+        if (err || results.book == null) {
+            const err = new Error('Book not found');
+            err.status = 404
+            return next(err);
+        }
+
+        res.render('book/book_delete', { title: 'Book Delete', book: results.book, book_instance: results.bookInstance })
+    })
 };
 
 // Handle book delete on POST.
 exports.book_delete_post = (req, res) => {
-    res.send('NOT IMPLEMENTED: Book delete POST');
+    async.parallel({
+        book: (callback) => {
+            Book.findById(req.body.bookid).exec(callback)
+        },
+        bookInstance: (callback) => {
+            BookInstance.find({ 'book': req.body.bookid }).exec(callback)
+        },
+    }, (err, results) => {
+        if (err) { return next(err); }
+        // Success
+        if (results.bookInstance.length > 0) {
+            // Author has books. Render in same way as for GET route.
+            res.render('book/book_delete', { title: 'Delete Book', book: results.book, book_instance: results.bookInstance });
+            return;
+        }
+
+        // Author has no books. Delete object and redirect to the list of authors.
+        Book.findByIdAndRemove(req.body.bookid, (err) => {
+            if (err) { return next(err); }
+            // Success - go to author list
+            res.redirect('/catalog/books')
+        })
+    });
 };
 
 // Display book update form on GET.
