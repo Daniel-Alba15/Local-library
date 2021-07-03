@@ -17,7 +17,7 @@ block content
 
   div(style='margin-top: 50px;')
     h4 Copies
-    
+
     each val in book_instances
       hr
       if val.status=='Available'
@@ -34,3 +34,9 @@ block content
 
     else
       p There are no copies of this book in the library.
+
+  hr
+  p
+    a(href=book.url+'/delete') Delete Book
+  p
+    a(href=book.url+'/update') Update Book

@@ -6,7 +6,7 @@ block content
   p Date of birth: #{author.date_of_birth_formatted}
   p Date of death: #{author.date_of_death_formatted}
   p Age: #{author.lifespan}
-  
+
   h2 Books
   hr
   each book in books
@@ -14,3 +14,7 @@ block content
       a(href=book.url) #{book.title}
   else 
     p There are no books of this author.
+
+  hr
+  p
+    a(href=author.url+'/delete') Delete author
