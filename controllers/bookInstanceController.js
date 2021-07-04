@@ -44,9 +44,31 @@ exports.bookinstance_create_get = (req, res, next) => {
 };
 
 // Handle BookInstance create on POST.
-exports.bookinstance_create_post = (req, res) => {
-    res.send('NOT IMPLEMENTED: BookInstance create POST');
-};
+exports.bookinstance_create_post = [
+    body('imprint', 'Imprint must not be empty.').trim().isLength({ min: 1 }).escape(),
+    body('due_back', 'Invalid due back').optional({ checkFalsy: true }).isISO8601().toDate(),
+
+
+    async (req, res, next) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            const result = await Book.find({}, 'title')
+            res.render('bookinstance/bookinstance_form', { title: 'Create Bookinstance', book_list: result, errors: errors.array() });
+            return;
+        }
+
+        const newBookInstance = new BookInstance({
+            book: req.body.book,
+            imprint: req.body.imprint,
+            status: req.body.status,
+            due_back: req.body.due_back
+        });
+
+        const result = await newBookInstance.save();
+        res.redirect('/catalog/bookinstances');
+    }
+];
 
 // Display BookInstance delete form on GET.
 exports.bookinstance_delete_get = (req, res) => {
@@ -89,11 +111,50 @@ exports.bookinstance_delete_post = async (req, res, next) => {
 };
 
 // Display BookInstance update form on GET.
-exports.bookinstance_update_get = (req, res) => {
-    res.send('NOT IMPLEMENTED: BookInstance update GET');
+exports.bookinstance_update_get = async (req, res, next) => {
+    const bookInstance = await BookInstance.findById(req.params.id).lean();
+
+    if (bookInstance == null) {
+        const err = new Erro(404);
+        err.status = 404;
+        return next(404);
+    }
+
+    if (bookInstance.due_back != null) {
+        bookInstance.due_back = bookInstance.due_back.toISOString().slice(0, 10);
+    }
+
+    const books = await Book.find({});
+
+    const status = ['Maintenance', 'Available', 'Loaned', 'Reserved'];
+
+    res.render('bookinstance/bookinstance_form', { title: 'Update Book Instance', bookinstance: bookInstance, book_list: books, status });
+
 };
 
 // Handle bookinstance update on POST.
-exports.bookinstance_update_post = (req, res) => {
-    res.send('NOT IMPLEMENTED: BookInstance update POST');
-};
+exports.bookinstance_update_post = [
+    body('imprint', 'Imprint must not be empty.').trim().isLength({ min: 1 }).escape(),
+    body('due_back', 'Invalid due back').optional({ checkFalsy: true }).isISO8601().toDate(),
+
+
+    async (req, res, next) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            const result = await Book.find({}, 'title')
+            res.render('bookinstance/bookinstance_form', { title: 'Create Bookinstance', book_list: result, errors: errors.array() });
+            return;
+        }
+
+        const newBookInstance = {
+            book: req.body.book,
+            imprint: req.body.imprint,
+            status: req.body.status,
+            due_back: req.body.due_back
+        };
+
+        const result = await BookInstance.findByIdAndUpdate(req.params.id, newBookInstance);
+        res.redirect('/catalog/bookinstances');
+    }
+];

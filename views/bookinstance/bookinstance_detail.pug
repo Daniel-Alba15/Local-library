@@ -10,14 +10,14 @@ block content
 
   p #[strong Status:] 
     if bookinstance.status=='Available'
-      span(class="text-success") #{bookinstance.status}
+      span(class='text-success') #{bookinstance.status}
     else if bookinstance.status=='Maintenance'
-      span(class="text-danger") #{bookinstance.status}
+      span(class='text-danger') #{bookinstance.status}
     else
-      span(class="text-warning") #{bookinstance.status}
+      span(class='text-warning') #{bookinstance.status}
 
   if bookinstance.status!='Available'
-    p #[strong Due back:] #{bookinstance.due_back}
+    p #[strong Due back:] #{bookinstance.due_back_formatted}
 
   hr
   p

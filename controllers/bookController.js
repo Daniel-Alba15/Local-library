@@ -1,5 +1,4 @@
 const async = require('async');
-const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 
 const Book = require('../models/book');

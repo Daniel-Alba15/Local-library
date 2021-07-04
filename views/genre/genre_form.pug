@@ -3,7 +3,7 @@ extends ../base
 block content
   h1 #{title}
 
-  form(method='POST' action='/catalog/genre/create')
+  form(method='POST' action='')
     div(class='form-group')
       label(for='name') Genre:
       input(id='name' class='form-control' type='text' placeholder='Fantasy, Poetry etc.' name='name' required='true' value=(undefined===genre ? '' : genre.name))
