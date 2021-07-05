@@ -1,13 +1,11 @@
-
 # Local library
 
-A basic CRUD library application usinga Node.js, MongoDB and Pug.js.
+A basic CRUD library application using Node.js, MongoDB and Pug.js.
 
 ## Demo
 
-Insert gif or link to demo
+https://local-library.openode.io/catalog
 
-  
 ## Run Locally
 
 Clone the project
@@ -31,12 +29,21 @@ Install dependencies
 Start the server
 
 ```bash
-  npm run start
+  npm run devstart
 ```
 
-  
+## Environment Variables
+
+To run this project, you will need to add the following environment variables to your .env file
+
+`DB_HOST`
+
+Go to https://www.mongodb.com and create an Atlas Cluster then copy the url in your env variable
+
+## Contributing
+
+Contributions are always welcome!
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-
-  

@@ -23,7 +23,7 @@ db.on('error', console.error.bind(console, 'Failed to connect :('));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(helment());
+app.use(helmet());
 app.use(compression());
 app.use(logger('dev'));
 app.use(express.json());
