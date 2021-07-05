@@ -1,40 +1,32 @@
-const async = require('async');
 const { body, validationResult } = require('express-validator');
 
 const Author = require('../models/author');
 const Book = require('../models/book');
 
-exports.author_list = (req, res, next) => {
-    Author.find()
-        .sort([['family_name', 'ascending']])
-        .exec((err, list_authors) => {
-            if (err) { return next(err); }
-            //Successful, so render
-            res.render('author/author_list', { title: 'Author List', author_list: list_authors });
-        });
+exports.author_list = async (req, res) => {
+    const author_list = await Author.find().sort([['family_name', 'ascending']]);
+
+    res.render('author/author_list', { title: 'Author List', author_list });
 };
 
-exports.author_detail = (req, res, next) => {
+exports.author_detail = async (req, res, next) => {
     const id = req.params.id;
 
-    async.parallel({
-        author: (callback) => {
-            Author.findById(id)
-                .exec(callback);
-        },
-        books: (callback) => {
-            Book.find({ author: id }, 'title')
-                .exec(callback);
-        }
-    }, (err, results) => {
-        if (err || results.author == null) {
-            const err = new Error('Author not found');
-            err.status = 404
-            return next(err);
-        }
+    const results = await Promise.all([
+        Author.findById(id),
+        Book.find({ author: id }, 'title')
+    ]);
 
-        res.render('author/author_detail', { title: results.author.name, author: results.author, books: results.books })
-    })
+    const author = results[0];
+    const books = results[1];
+
+    if (author == null) {
+        const err = new Error('Author not found');
+        err.status = 404;
+        return next(err);
+    }
+
+    res.render('author/author_detail', { title: author.name, author, books });
 };
 
 exports.author_create_get = (req, res) => {
@@ -42,7 +34,6 @@ exports.author_create_get = (req, res) => {
 };
 
 exports.author_create_post = [
-
     body('first_name').trim().isLength({ min: 1 })
         .escape().withMessage('First name must be specified')
         .isAlphanumeric().withMessage('First name has non-alphanumeric characters.'),
@@ -52,8 +43,7 @@ exports.author_create_post = [
     body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
     body('date_of_death', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
 
-
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
 
         // Form is invalid
@@ -70,61 +60,50 @@ exports.author_create_post = [
             date_of_death: req.body.date_of_death,
         });
 
-        author.save((err) => {
-            if (err) { return next(err); }
-
-            res.redirect(author.url);
-        })
+        await author.save();
+        res.redirect(author.url);
     }
 ];
 
-exports.author_delete_get = (req, res) => {
-    async.parallel({
-        author: (callback) => {
-            Author.findById(req.params.id).exec(callback)
-        },
-        authors_books: (callback) => {
-            Book.find({ 'author': req.params.id }).exec(callback)
-        },
-    }, (err, results) => {
-        if (err) { return next(err); }
+exports.author_delete_get = async (req, res) => {
+    const results = await Promise.all([
+        Author.findById(req.params.id),
+        Book.find({ 'author': req.params.id })
+    ]);
 
-        if (results.author == null) { // No results.
-            res.redirect('/catalog/authors');
-        }
-        // Successful, so render.
-        res.render('author/author_delete', { title: 'Delete Author', author: results.author, author_books: results.authors_books });
-    });
+    const author = results[0];
+    const author_books = results[1];
+
+    if (author == null) {
+        res.redirect('/catalog/authors');
+        return;
+    }
+
+    res.render('author/author_delete', { title: 'Delete Author', author, author_books });
 };
 
-exports.author_delete_post = (req, res, next) => {
-    async.parallel({
-        author: (callback) => {
-            Author.findById(req.body.authorid).exec(callback)
-        },
-        authors_books: (callback) => {
-            Book.find({ 'author': req.body.authorid }).exec(callback)
-        },
-    }, (err, results) => {
-        if (err || results.author == null) {
-            const err = new Error('Author not found');
-            err.status = 404;
-            return next(err);
-        }
-        // Success
-        if (results.authors_books.length > 0) {
-            // Author has books. Render in same way as for GET route.
-            res.render('author/author_delete', { title: 'Delete Author', author: results.author, author_books: results.authors_books });
-            return;
-        }
+exports.author_delete_post = async (req, res, next) => {
+    const results = await Promise.all([
+        Author.findById(req.body.authorid),
+        Book.find({ 'author': req.body.authorid })
+    ]);
 
-        // Author has no books. Delete object and redirect to the list of authors.
-        Author.findByIdAndDelete(req.body.authorid, (err) => {
-            if (err) { return next(err); }
-            // Success - go to author list
-            res.redirect('/catalog/authors')
-        })
-    });
+    const author = results[0];
+    const author_books = results[1];
+
+    if (author == null) {
+        const err = new Error(404);
+        err.status = 404;
+        return next(err);
+    }
+
+    if (author_books.length > 0) {
+        res.render('author/author_delete', { title: 'Delete Author', author, author_books });
+        return;
+    }
+
+    await Author.findByIdAndDelete(req.body.authorid);
+    res.redirect('/catalog/authors');
 };
 
 exports.author_update_get = async (req, res, next) => {
@@ -154,7 +133,6 @@ exports.author_update_get = async (req, res, next) => {
 };
 
 exports.author_update_post = [
-
     body('first_name').trim().isLength({ min: 1 })
         .escape().withMessage('First name must be specified')
         .isAlphanumeric().withMessage('First name has non-alphanumeric characters.'),
@@ -164,13 +142,10 @@ exports.author_update_post = [
     body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
     body('date_of_death', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
 
-
     async (req, res, next) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            console.log("acaaaaaaa");
-            console.log(req.body);
             res.render('author/author_form', { title: 'Edit Author', author: req.body, errors: errors.array() });
             return;
         }
@@ -183,7 +158,6 @@ exports.author_update_post = [
         };
 
         try {
-
             const result = await Author.findByIdAndUpdate(req.params.id, author);
 
             if (result == null) {
@@ -193,10 +167,8 @@ exports.author_update_post = [
             }
 
             res.redirect(result.url);
-
         } catch (err) {
             return next(err);
         }
-
     }
 ];

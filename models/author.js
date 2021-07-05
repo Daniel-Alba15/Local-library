@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {DateTime} = require('luxon');
+const { DateTime } = require('luxon');
 
 const Schema = mongoose.Schema;
 
@@ -15,16 +15,16 @@ AuthorSchema.virtual('date_of_birth_formatted').get(function () {
     if (this.date_of_birth == undefined) {
         return 'No data'
     }
-    
-    return DateTime.fromJSDate(this.date_of_birth).toLocaleString(DateTime.DATE_MED);    
+
+    return DateTime.fromJSDate(this.date_of_birth).toLocaleString(DateTime.DATE_MED);
 });
 
 AuthorSchema.virtual('date_of_death_formatted').get(function () {
     if (this.date_of_death == undefined) {
         return 'No data'
     }
-    
-    return DateTime.fromJSDate(this.date_of_death).toLocaleString(DateTime.DATE_MED);    
+
+    return DateTime.fromJSDate(this.date_of_death).toLocaleString(DateTime.DATE_MED);
 });
 
 AuthorSchema.virtual('name').get(function () {
