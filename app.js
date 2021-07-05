@@ -4,6 +4,8 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const compression = require('compression');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 
 const indexRouter = require('./routes/index');
@@ -21,6 +23,8 @@ db.on('error', console.error.bind(console, 'Failed to connect :('));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+app.use(helment());
+app.use(compression());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
