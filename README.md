@@ -4,7 +4,7 @@ A basic CRUD library application using Node.js, MongoDB and Pug.js.
 
 ## Demo
 
-https://local-library.openode.io/catalog
+https://localawesomelibrary.herokuapp.com/catalog
 
 ## Run Locally
 
